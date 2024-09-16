@@ -1,26 +1,26 @@
 // ***********
-// controllers/dailyToDo.js
+// controllers/weeklyToDo.js
 
 const mongodb = require('../connections/index');
 const ObjectId = require('mongodb').ObjectId;
 
 
 // GET by ID (Called by the user)
-const getDailyToDListById = async (req, res) => {
+const getWeeklyToDListById = async (req, res) => {
     try {
         const listId = new ObjectId(req.params.id);
         if (!listId) {
-            res.status(400).send({ message: 'Invalid Daily To Do List ID supplied.' });
+            res.status(400).send({ message: 'Invalid Weekly To Do List ID supplied.' });
             return;
         }
-        await mongodb.getDb().db('CSE341ToDoListAPI').collection('dailyToDo').find({ _id: listId }).toArray()
+        await mongodb.getDb().db('CSE341ToDoListAPI').collection('weeklyToDo').find({ _id: listId }).toArray()
             .then((result) => {
                 res.setHeader('Content-Type', 'application/json');
                 res.status(200).json(result);
             })
             .catch((err) => {
                 res.status(500).send({
-                    message: err.message || 'Some error occurred while retrieving the Daily To Do List.'
+                    message: err.message || 'Some error occurred while retrieving the Weekly To Do List.'
                 });
             });
     } catch (err) {
@@ -30,7 +30,7 @@ const getDailyToDListById = async (req, res) => {
 
 
 // PUT Remove tasks OR Add Tasks (Called by the user)
-const updateTasksDailyToDo = async (req, res) => {
+const updateTasksWeeklyToDo = async (req, res) => {
     try {
         const listId = new ObjectId(req.params.id);
         if (!listId) {
@@ -39,7 +39,7 @@ const updateTasksDailyToDo = async (req, res) => {
         }
         // Check if adding or removing
         let body = req.body;
-        const oldList = await mongodb.getDb().db('CSE341ToDoListAPI').collection('dailyToDo').find({ _id: listId }).toArray();
+        const oldList = await mongodb.getDb().db('CSE341ToDoListAPI').collection('weeklyToDo').find({ _id: listId }).toArray();
         let tasks = {};
         if(body["remove0"]) {
             // If removing tasks
@@ -105,11 +105,11 @@ const updateTasksDailyToDo = async (req, res) => {
             while (true);
         }
         try {
-            const response = await mongodb.getDb().db('CSE341ToDoListAPI').collection('dailyToDo').replaceOne({ _id: listId }, tasks);
+            const response = await mongodb.getDb().db('CSE341ToDoListAPI').collection('weeklyToDo').replaceOne({ _id: listId }, tasks);
             if (response.modifiedCount > 0) {
                 res.status(204).send();
             } else {
-                res.status(500).json(response.error || 'Some error occurred while updating the Daily To Do List. Make sure that you are only adding or only removing.');
+                res.status(500).json(response.error || 'Some error occurred while updating the Weekly To Do List. Make sure that you are only adding or only removing.');
             }
         }catch (err) {
             res.status(500).json(err);
@@ -120,4 +120,4 @@ const updateTasksDailyToDo = async (req, res) => {
 }
 
 
-module.exports = { getDailyToDListById, updateTasksDailyToDo };
+module.exports = { getWeeklyToDListById, updateTasksWeeklyToDo };

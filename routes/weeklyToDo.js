@@ -1,23 +1,23 @@
 // ***********
-// routes/dailyToDo.js
+// routes/weeklyToDo.js
 
 const express = require('express');
 const router = express.Router();
 const { validationResult } = require('express-validator');
 const validatior = require('../validation/validation.js');
-const dailyToDoValidator = validatior.dailyToDoValidation
-const dailyToDoController = require('../controllers/dailyToDo.js');
+const weeklyToDoValidator = validatior.weeklyToDoValidation
+const weeklyToDoController = require('../controllers/weeklyToDo.js');
 
 
-router.get('/:id', dailyToDoController.getDailyToDListById);
+router.get('/:id', weeklyToDoController.getWeeklyToDListById);
 
-router.put('/:id', dailyToDoValidator,
+router.put('/:id', weeklyToDoValidator,
     function (req, res) {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(422).jsonp(errors.array());
         } else {
-            dailyToDoController.updateTasksDailyToDo(req, res);
+            weeklyToDoController.updateTasksWeeklyToDo(req, res);
         }
     });
 

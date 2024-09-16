@@ -3,16 +3,33 @@
 
 
 const mongodb = require('../connections/index');
+const ObjectId = require('mongodb').ObjectId;
+const authorizationHost = process.env.AUTHORIZATION_HOST;
+const authUserURL = authorizationHost + "/userinfo";
 
 
 const getUserLists = async (req, res) => {
     try {
-        //   const characterId = new ObjectId(req.params.id);
-        if (!authZeroUserJson.sub) {
-            res.status(400).send({ message: 'No 0auth id supplied.' });
+        const jrrtoken = req.cookies.access_token;
+        if (!jrrtoken) {
+            throw ("My computer in the pool.");
+        }
+        const tokenResponse = await fetch(authUserURL, {
+            headers: { Authorization: "bearer " + jrrtoken }
+        });
+    } catch (err) {
+        res.status(401).send({
+            message: 'You are not logged in.'
+        });
+        return;
+    }
+    try {
+        const userId = new ObjectId(req.params.id);
+        if (!userId) {
+            res.status(400).send({ message: 'No Id supplied.' });
             return;
         }
-        await mongodb.getDb().db('CSE341ToDoListAPI').collection('users').find({ identifier: authZeroUserJson.sub })
+        await mongodb.getDb().db('CSE341ToDoListAPI').collection('users').find({ _id: userId }).toArray()
             .then((result) => {
                 res.setHeader('Content-Type', 'application/json');
                 res.status(200).json(result);
@@ -27,32 +44,6 @@ const getUserLists = async (req, res) => {
     }
 };
 
-
-// Get User by ID
-// const getUserListsById = async (req, res) => {
-//     try {
-//         const userId = new ObjectId(req.params.id);
-//         if (!userId) {
-//             res.status(400).send({ message: 'Invalid user ID supplied.' });
-//             return;
-//         }
-//         await mongodb.getDb().db('CSE341ToDoListAPI').collection('users').find({ _id: userId })
-//             .then((result) => {
-//                 res.setHeader('Content-Type', 'application/json');
-//                 res.status(200).json(result);
-//             })
-//             .catch((err) => {
-//                 res.status(500).send({
-//                     message: err.message || 'Some error occurred while retrieving your information.'
-//                     // message: err.message || 'Some error occurred while retrieving your To Do Lists.'
-//                 });
-//             });
-//     } catch (err) {
-//         res.status(500).json(err);
-//     }
-// };
-
-// DELETE
 const deleteUser = async (req, res) => {
     try {
         const userId = new ObjectId(req.params.id);
@@ -60,15 +51,64 @@ const deleteUser = async (req, res) => {
             res.status(400).send({ message: 'Invalid user ID supplied.' });
             return;
         }
-        // Deletes the Daily To Do from the dailyToDo database
+        // First gets the user's lists
+        const userLists = await mongodb.getDb().db('CSE341ToDoListAPI').collection('users').find({ _id: userId }).toArray();
 
+        const dailyToDoId = userLists[0].dailyToDoId;
+        const weeklyToDoId = userLists[0].weeklyToDoId;
+        const dailyCompleteId = userLists[0].dailyCompleteId;
+        const weeklyCompleteId = userLists[0].weeklyCompleteId;
 
-        // Deletes the User from the users database
-        const response = await mongodb.getDb().db('CSE341ToDoListAPI').collection('users').deleteOne({ _id: userId }, true);
-        if (response.deletedCount > 0) {
-            res.status(204).send();
-        } else {
-            res.status(500).json(response.error || 'Some error occurred while deleting the user.');
+        // dailyToDo
+        try {
+            const response1 = await mongodb.getDb().db('CSE341ToDoListAPI').collection('dailyToDo').deleteOne({ _id: dailyToDoId }, true);
+            if (response1.deletedCount > 0) {
+            } else {
+                res.status(500).json(response1.error || 'And error occurred while deleting the dailyToDo List.');
+            }
+        } catch (err) {
+            res.status(500).json(response1.error || 'And error occurred while deleting the dailyToDo List.');
+        }
+        // dailyComplete 
+        try {
+            const response2 = await mongodb.getDb().db('CSE341ToDoListAPI').collection('dailyComplete').deleteOne({ _id: dailyCompleteId }, true);
+            if (response2.deletedCount > 0) {
+            } else {
+                res.status(500).json(response2.error || 'And error occurred while deleting the dailyComplete List.');
+            }
+        } catch (err) {
+            res.status(500).json(response2.error || 'And error occurred while deleting the dailyComplete List.');
+        }
+        // weeklyToDo 
+        try {
+            const response3 = await mongodb.getDb().db('CSE341ToDoListAPI').collection('weeklyToDo').deleteOne({ _id: weeklyToDoId }, true);
+            if (response3.deletedCount > 0) {
+            } else {
+                res.status(500).json(response3.error || 'And error occurred while deleting the dailyComplete List.');
+            }
+        } catch (err) {
+            res.status(500).json(response3.error || 'And error occurred while deleting the dailyComplete List.');
+        }
+        // weeklyComplete
+        try {
+            const response4 = await mongodb.getDb().db('CSE341ToDoListAPI').collection('weeklyComplete').deleteOne({ _id: weeklyCompleteId }, true);
+            if (response4.deletedCount > 0) {
+            } else {
+                res.status(500).json(response4.error || 'And error occurred while deleting the weeklyComplete List.');
+            }
+        } catch (err) {
+            res.status(500).json(response4.error || 'And error occurred while deleting the weeklyComplete List.');
+        }
+        // user
+        try {
+            const response5 = await mongodb.getDb().db('CSE341ToDoListAPI').collection('users').deleteOne({ _id: userId }, true);
+            if (response5.deletedCount > 0) {
+                res.status(204).send();
+            } else {
+                res.status(500).json(response5.error || 'And error occurred while deleting the user.');
+            }
+        } catch (err) {
+            res.status(500).json(response5.error || 'And error occurred while deleting the user.');
         }
     } catch (err) {
         res.status(500).json(err || 'Some error occurred while deleting the user.');
@@ -76,33 +116,4 @@ const deleteUser = async (req, res) => {
 };
 
 
-// Add List Id to the Matching User (PUT)
-const addDailyToDoListToUser = async (req, res) => {
-    try {
-        const userId = new ObjectId(req.params.id);
-        if (!userId) {
-            res.status(400).send({ message: 'Invalid user ID supplied.' });
-            return;
-        }
-        const updatedUser = {
-            identifier: req.body.sub,
-            email: req.body.email,
-            givenName: req.body.given_name,
-            familyName: req.body.family_name,
-            locale: req.body.locale,
-            picture: req.body.picture,
-            dailyToDoList: req.body.dailyToDoListId
-        };
-        const response = await mongodb.getDb().db('CSE341ToDoListAPI').collection('users').replaceOne({ _id: userId }, updatedUser);
-        if (response.modifiedCount > 0) {
-            res.status(204).send();
-        } else {
-            res.status(500).json(response.error || 'Some error occurred while updating the user with the new list.');
-        }
-    } catch (err) {
-        res.status(500).json(err);
-    }
-}
-
-
-module.exports = { getUserLists, addDailyToDoListToUser };
+module.exports = { getUserLists, deleteUser };

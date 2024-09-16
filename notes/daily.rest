@@ -1,9 +1,10 @@
 ###
-GET http://localhost:3000/api/dailyToDo/637d417e4bd6dc2996bb452e
+GET http://localhost:3000/api/dailyToDo/638a5cbf30b5edf765ff714e
 ###
 
 ###
-PUT http://localhost:3000/api/dailyToDo/637feca653ab7ba20b936330 HTTP/1.1
+# Add Tasks
+PUT http://localhost:3000/api/dailyToDo/638a5cbf30b5edf765ff714e HTTP/1.1
 content-type: application/json
 
 {
@@ -13,4 +14,14 @@ content-type: application/json
     "task3": "d"
 }
 
+###
+# Remove Tasks
+PUT http://localhost:3000/api/dailyToDo/638a5cbf30b5edf765ff714e HTTP/1.1
+content-type: application/json
+
+{
+    "remove0": "task0",
+    "remove1": "task1",
+    "remove2": "task2"
+}
 ###

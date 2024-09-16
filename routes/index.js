@@ -7,14 +7,17 @@ const authorizationRoutes = require("./authorization");
 
 
 router.use('/api/dailyToDo', require('./dailyToDo'));
+router.use('/api/dailyComplete', require('./dailyComplete'));
+router.use('/api/weeklyToDo', require('./weeklyToDo'));
+router.use('/api/weeklyComplete', require('./weeklyComplete'));
 router.use("/authorization", authorizationRoutes);
 router.use("/user", require('./user'));
 
 router.get("/logout", (req, res) => {
-    return res
-        .clearCookie("access_token")
-        .status(200)
-        .json({ message: "Successfully logged out." });
+   return res
+       .clearCookie("access_token")
+       .status(200)
+       .json({ message: "Successfully logged out." });
 });
 
 
